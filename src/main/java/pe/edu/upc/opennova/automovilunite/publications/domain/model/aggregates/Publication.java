@@ -68,6 +68,7 @@ public class Publication extends AuditableAbstractAggregateRoot<Publication> {
         this.description = description;
         this.image = image;
         this.price = price;
+        return this;
     }
 
 }
