@@ -3,6 +3,7 @@ package pe.edu.upc.opennova.automovilunite.publications.domain.model.aggregates;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import pe.edu.upc.opennova.automovilunite.publications.domain.model.commands.CreatePublicationCommand;
 import pe.edu.upc.opennova.automovilunite.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
@@ -34,7 +35,7 @@ public class Publication extends AuditableAbstractAggregateRoot<Publication> {
     @Column(name = "image", nullable = false)
     private String image;
 
-    @NotBlank
+    @NotNull
     @Column(name = "price", nullable = false)
     private Integer price;
 
