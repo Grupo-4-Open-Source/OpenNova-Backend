@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.commands.DeleteVehicleCommand;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetAllVehiclesQuery;
-import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetVehiclesByIdQuery;
+import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetVehicleByIdQuery;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.services.VehicleCommandService;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.services.VehicleQueryService;
 import pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.resources.CreateVehicleResource;
@@ -43,7 +43,7 @@ public class VehicleController {
             return ResponseEntity.badRequest().build();
         }
 
-        var getVehiclesByIdQuery =new GetVehiclesByIdQuery(vehicleId);
+        var getVehiclesByIdQuery =new GetVehicleByIdQuery(vehicleId);
         var optionalVehicle = this.vehicleQueryService.handle(getVehiclesByIdQuery);
 
         var vehicleResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalVehicle.get());
@@ -63,7 +63,7 @@ public class VehicleController {
 
     @GetMapping("/{vehicleId}")
     public ResponseEntity<VehicleResource> getVehicleById(@PathVariable Long vehicleId) {
-        var getVehiclesByIdQuery = new GetVehiclesByIdQuery(vehicleId);
+        var getVehiclesByIdQuery = new GetVehicleByIdQuery(vehicleId);
         var optionalVehicle = this.vehicleQueryService.handle(getVehiclesByIdQuery);
 
         if (optionalVehicle.isEmpty()) {
