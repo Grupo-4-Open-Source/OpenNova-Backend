@@ -36,61 +36,61 @@ public class VehicleController {
 
     @PostMapping
     public ResponseEntity<VehicleResource> createVehicle(@RequestBody CreateVehicleResource resource) {
-        var createPublicationCommand = CreateVehicleCommandFromResourceAssembler.toCommandFromResource(resource);
-        var publicationId = this.vehicleCommandService.handle(createPublicationCommand);
+        var createVehicleCommand = CreateVehicleCommandFromResourceAssembler.toCommandFromResource(resource);
+        var vehicleId = this.vehicleCommandService.handle(createVehicleCommand);
 
-        if (publicationId.equals(0L)) {
+        if (vehicleId.equals(0L)) {
             return ResponseEntity.badRequest().build();
         }
 
-        var getPublicationByIdQuery =new GetVehiclesByIdQuery(publicationId);
-        var optionalPublication = this.vehicleQueryService.handle(getPublicationByIdQuery);
+        var getVehiclesByIdQuery =new GetVehiclesByIdQuery(vehicleId);
+        var optionalVehicle = this.vehicleQueryService.handle(getVehiclesByIdQuery);
 
-        var publicationResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalPublication.get());
-        return new ResponseEntity<>(publicationResource, HttpStatus.CREATED);
+        var vehicleResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalVehicle.get());
+        return new ResponseEntity<>(vehicleResource, HttpStatus.CREATED);
     }
 
     @GetMapping
     public ResponseEntity<List<VehicleResource>> getAllVehicles() {
-        var getAllPublicationsQuery = new GetAllVehiclesQuery();
-        var publications = this.vehicleQueryService.handle(getAllPublicationsQuery);
+        var getAllVehiclesQuery = new GetAllVehiclesQuery();
+        var vehicles = this.vehicleQueryService.handle(getAllVehiclesQuery);
 
-        var publicationResources = publications.stream()
+        var vehicleResources = vehicles.stream()
                 .map(VehicleResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(publicationResources);
+        return ResponseEntity.ok(vehicleResources);
     }
 
     @GetMapping("/{vehicleId}")
     public ResponseEntity<VehicleResource> getVehicleById(@PathVariable Long vehicleId) {
-        var getPublicationByIdQuery = new GetVehiclesByIdQuery(vehicleId);
-        var optionalPublication = this.vehicleQueryService.handle(getPublicationByIdQuery);
+        var getVehiclesByIdQuery = new GetVehiclesByIdQuery(vehicleId);
+        var optionalVehicle = this.vehicleQueryService.handle(getVehiclesByIdQuery);
 
-        if (optionalPublication.isEmpty()) {
+        if (optionalVehicle.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        var publicationResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalPublication.get());
-        return ResponseEntity.ok(publicationResource);
+        var vehicleResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalVehicle.get());
+        return ResponseEntity.ok(vehicleResource);
     }
 
     @DeleteMapping("/{vehicleId}")
     public ResponseEntity<?> deleteVehicle(@PathVariable Long vehicleId) {
-        var deletePublicationCommand = new DeleteVehicleCommand(vehicleId);
-        this.vehicleCommandService.handle(deletePublicationCommand);
+        var deleteVehicleCommand = new DeleteVehicleCommand(vehicleId);
+        this.vehicleCommandService.handle(deleteVehicleCommand);
         return ResponseEntity.badRequest().build();
         }
 
     @PutMapping("/{vehicleId}")
     public ResponseEntity<VehicleResource> updateSaving(@PathVariable Long vehicleId, @RequestBody VehicleResource resource) {
-        var updatePublicationCommand = UpdateVehicleCommandFromResourceAssembler.toCommandFromResource(vehicleId, resource);
-        var optionalPublication = this.vehicleCommandService.handle(updatePublicationCommand);
+        var updateVehicleCommand = UpdateVehicleCommandFromResourceAssembler.toCommandFromResource(vehicleId, resource);
+        var optionalVehicle = this.vehicleCommandService.handle(updateVehicleCommand);
 
-        if (optionalPublication.isEmpty()) {
+        if (optionalVehicle.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        var publicationResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalPublication.get());
-        return ResponseEntity.ok(publicationResource);
+        var vehicleResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalVehicle.get());
+        return ResponseEntity.ok(vehicleResource);
     }
 }

@@ -6,9 +6,9 @@ import pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.resources.Veh
 
 @Slf4j
 public class UpdateVehicleCommandFromResourceAssembler {
-    public static UpdateVehicleCommand toCommandFromResource(Long publicationId, VehicleResource resource) {
+    public static UpdateVehicleCommand toCommandFromResource(Long vehicleId, VehicleResource resource) {
         return new UpdateVehicleCommand(
-                publicationId,
+                vehicleId,
                 resource.model(),
                 resource.brand(),
                 resource.year(),
