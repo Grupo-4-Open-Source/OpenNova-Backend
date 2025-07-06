@@ -1,20 +1,25 @@
 package pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.transform;
 
-import lombok.extern.slf4j.Slf4j;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.commands.UpdateVehicleCommand;
 import pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.resources.VehicleResource;
+import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.valueobjects.EVehicleType;
+import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.valueobjects.EFuelType;
 
-@Slf4j
 public class UpdateVehicleCommandFromResourceAssembler {
-    public static UpdateVehicleCommand toCommandFromResource(Long publicationId, VehicleResource resource) {
+    public static UpdateVehicleCommand toCommandFromResource(Long vehicleId, VehicleResource resource) {
         return new UpdateVehicleCommand(
-                publicationId,
+                vehicleId,
+                resource.make(),
                 resource.model(),
-                resource.brand(),
                 resource.year(),
+                resource.color(),
+                resource.currentMileage(),
+                EVehicleType.valueOf(resource.vehicleType()),
+                EFuelType.valueOf(resource.fuelType()),
+                resource.passengerCapacity(),
                 resource.description(),
-                resource.image(),
-                resource.price()
+                resource.mainImageUrl(),
+                resource.galleryImageUrls()
         );
     }
 }

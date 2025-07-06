@@ -8,7 +8,7 @@ import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.commands.UpdateV
 import java.util.Optional;
 
 public interface VehicleCommandService {
-    Long handle(CreateVehicleCommand command);
+    Optional<Vehicle> handle(CreateVehicleCommand command);
     Optional<Vehicle> handle(UpdateVehicleCommand command);
     void handle(DeleteVehicleCommand command);
 }

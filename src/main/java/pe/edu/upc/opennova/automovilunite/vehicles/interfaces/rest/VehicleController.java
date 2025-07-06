@@ -1,6 +1,7 @@
 package pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest;
 
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -8,7 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.commands.DeleteVehicleCommand;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetAllVehiclesQuery;
-import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetVehiclesByIdQuery;
+import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetVehicleByIdQuery;
+import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.queries.GetVehiclesByOwnerIdQuery;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.services.VehicleCommandService;
 import pe.edu.upc.opennova.automovilunite.vehicles.domain.services.VehicleQueryService;
 import pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.resources.CreateVehicleResource;
@@ -20,11 +22,10 @@ import pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.transform.Upd
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE })
+@CrossOrigin(origins = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH })
 @RestController
-@RequestMapping(value = "/api/v1/vehicle", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/v1/vehicles", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Vehicles", description = "Vehicles Management Endpoints")
-
 public class VehicleController {
     private final VehicleCommandService vehicleCommandService;
     private final VehicleQueryService vehicleQueryService;
@@ -35,62 +36,72 @@ public class VehicleController {
     }
 
     @PostMapping
+    @Operation(summary = "Create a new Vehicle", description = "Creates a new Vehicle with the provided data")
     public ResponseEntity<VehicleResource> createVehicle(@RequestBody CreateVehicleResource resource) {
-        var createPublicationCommand = CreateVehicleCommandFromResourceAssembler.toCommandFromResource(resource);
-        var publicationId = this.vehicleCommandService.handle(createPublicationCommand);
-
-        if (publicationId.equals(0L)) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        var getPublicationByIdQuery =new GetVehiclesByIdQuery(publicationId);
-        var optionalPublication = this.vehicleQueryService.handle(getPublicationByIdQuery);
-
-        var publicationResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalPublication.get());
-        return new ResponseEntity<>(publicationResource, HttpStatus.CREATED);
+        var createVehicleCommand = CreateVehicleCommandFromResourceAssembler.toCommandFromResource(resource);
+        return vehicleCommandService.handle(createVehicleCommand)
+                .map(vehicle -> new ResponseEntity<>(VehicleResourceFromEntityAssembler.toResourceFromEntity(vehicle), HttpStatus.CREATED))
+                .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @GetMapping
+    @Operation(summary = "Get all Vehicles", description = "Retrieves a list of all existing Vehicles")
     public ResponseEntity<List<VehicleResource>> getAllVehicles() {
-        var getAllPublicationsQuery = new GetAllVehiclesQuery();
-        var publications = this.vehicleQueryService.handle(getAllPublicationsQuery);
+        var getAllVehiclesQuery = new GetAllVehiclesQuery();
+        var vehicles = this.vehicleQueryService.handle(getAllVehiclesQuery);
 
-        var publicationResources = publications.stream()
+        var vehicleResources = vehicles.stream()
                 .map(VehicleResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(publicationResources);
+        return ResponseEntity.ok(vehicleResources);
     }
 
     @GetMapping("/{vehicleId}")
+    @Operation(summary = "Get a Vehicle by its ID", description = "Retrieves a Vehicle by its unique ID")
     public ResponseEntity<VehicleResource> getVehicleById(@PathVariable Long vehicleId) {
-        var getPublicationByIdQuery = new GetVehiclesByIdQuery(vehicleId);
-        var optionalPublication = this.vehicleQueryService.handle(getPublicationByIdQuery);
+        var getVehicleByIdQuery = new GetVehicleByIdQuery(vehicleId);
+        return this.vehicleQueryService.handle(getVehicleByIdQuery)
+                .map(vehicle -> new ResponseEntity<>(VehicleResourceFromEntityAssembler.toResourceFromEntity(vehicle), HttpStatus.OK))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
-        if (optionalPublication.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+    @GetMapping("/owner/{ownerId}")
+    @Operation(summary = "Get Vehicles by Owner ID", description = "Retrieves a list of Vehicles by a specific Owner ID")
+    public ResponseEntity<List<VehicleResource>> getVehiclesByOwnerId(@PathVariable String ownerId) {
+        var getVehiclesByOwnerIdQuery = new GetVehiclesByOwnerIdQuery(ownerId);
+        var vehicles = this.vehicleQueryService.handle(getVehiclesByOwnerIdQuery);
+
+        if (vehicles.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
 
-        var publicationResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalPublication.get());
-        return ResponseEntity.ok(publicationResource);
+        var vehicleResources = vehicles.stream()
+                .map(VehicleResourceFromEntityAssembler::toResourceFromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(vehicleResources);
+    }
+
+
+    @PutMapping("/{vehicleId}")
+    @Operation(summary = "Update a Vehicle", description = "Updates an existing Vehicle identified by its ID")
+    public ResponseEntity<VehicleResource> updateVehicle(@PathVariable Long vehicleId, @RequestBody VehicleResource resource) {
+        var updateVehicleCommand = UpdateVehicleCommandFromResourceAssembler.toCommandFromResource(vehicleId, resource);
+        return this.vehicleCommandService.handle(updateVehicleCommand)
+                .map(vehicle -> new ResponseEntity<>(VehicleResourceFromEntityAssembler.toResourceFromEntity(vehicle), HttpStatus.OK))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{vehicleId}")
+    @Operation(summary = "Delete a Vehicle", description = "Deletes a Vehicle identified by its ID")
     public ResponseEntity<?> deleteVehicle(@PathVariable Long vehicleId) {
-        var deletePublicationCommand = new DeleteVehicleCommand(vehicleId);
-        this.vehicleCommandService.handle(deletePublicationCommand);
-        return ResponseEntity.badRequest().build();
+        var deleteVehicleCommand = new DeleteVehicleCommand(vehicleId);
+        try {
+            this.vehicleCommandService.handle(deleteVehicleCommand);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting vehicle: " + e.getMessage());
         }
-
-    @PutMapping("/{vehicleId}")
-    public ResponseEntity<VehicleResource> updateSaving(@PathVariable Long vehicleId, @RequestBody VehicleResource resource) {
-        var updatePublicationCommand = UpdateVehicleCommandFromResourceAssembler.toCommandFromResource(vehicleId, resource);
-        var optionalPublication = this.vehicleCommandService.handle(updatePublicationCommand);
-
-        if (optionalPublication.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        var publicationResource = VehicleResourceFromEntityAssembler.toResourceFromEntity(optionalPublication.get());
-        return ResponseEntity.ok(publicationResource);
     }
 }

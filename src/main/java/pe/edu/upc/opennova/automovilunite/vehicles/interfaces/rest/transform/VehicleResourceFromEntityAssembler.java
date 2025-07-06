@@ -7,12 +7,19 @@ public class VehicleResourceFromEntityAssembler {
     public static VehicleResource toResourceFromEntity(Vehicle entity) {
         return new VehicleResource(
                 entity.getId(),
+                entity.getOwnerId().getValue(),
+                entity.getMake(),
                 entity.getModel(),
-                entity.getBrand(),
                 entity.getYear(),
+                entity.getColor(),
+                entity.getLicensePlate(),
+                entity.getCurrentMileage(),
+                entity.getVehicleType().getStringName(),
+                entity.getFuelType().getStringName(),
+                entity.getPassengerCapacity(),
                 entity.getDescription(),
-                entity.getImage(),
-                entity.getPrice()
-                );
+                entity.getMainImageUrl(),
+                entity.getGalleryImageUrls().getUrls()
+        );
     }
 }

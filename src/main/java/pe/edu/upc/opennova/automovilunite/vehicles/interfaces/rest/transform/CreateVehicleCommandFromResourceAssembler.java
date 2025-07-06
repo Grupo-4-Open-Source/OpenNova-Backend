@@ -4,14 +4,21 @@ import pe.edu.upc.opennova.automovilunite.vehicles.domain.model.commands.CreateV
 import pe.edu.upc.opennova.automovilunite.vehicles.interfaces.rest.resources.CreateVehicleResource;
 
 public class CreateVehicleCommandFromResourceAssembler {
-    public static CreateVehicleCommand toCommandFromResource (CreateVehicleResource resource) {
+    public static CreateVehicleCommand toCommandFromResource(CreateVehicleResource resource) {
         return new CreateVehicleCommand(
+                resource.ownerId(),
+                resource.make(),
                 resource.model(),
-                resource.brand(),
                 resource.year(),
+                resource.color(),
+                resource.licensePlate(),
+                resource.currentMileage(),
+                resource.vehicleType(),
+                resource.fuelType(),
+                resource.passengerCapacity(),
                 resource.description(),
-                resource.image(),
-                resource.price()
+                resource.mainImageUrl(),
+                resource.galleryImageUrls()
         );
     }
 }
