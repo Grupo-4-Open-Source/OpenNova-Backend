@@ -24,7 +24,7 @@ public class OpenApiConfiguration {
                         .license(new License().name("Apache 2.0")
                                 .url("https://springdoc.org")))
                 .externalDocs(new ExternalDocumentation()
-                        .description("Automovil-Unite Documentation")
+                        .description("Finzar Documentation")
                         .url("https://github.com/Grupo-4-Open-Source/Report.git"));
 
         final String securitySchemeName = "bearerAuth";
@@ -39,6 +39,7 @@ public class OpenApiConfiguration {
                                         .scheme("bearer")
                                         .bearerFormat("JWT")));
 
+        // Return OpenAPI configuration object with all settings
         return openApi;
     }
 }
