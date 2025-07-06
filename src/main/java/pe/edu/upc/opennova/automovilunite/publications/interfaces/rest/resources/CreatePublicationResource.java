@@ -9,7 +9,7 @@ public record CreatePublicationResource(
         String description,
         BigDecimal dailyPrice,
         BigDecimal weeklyPrice,
-        String vehicleId,
+        Long vehicleId,
         String ownerId,
         String pickupLocationId,
         String carRules,

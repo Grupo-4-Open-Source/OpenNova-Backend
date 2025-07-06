@@ -1,20 +1,18 @@
 package pe.edu.upc.opennova.automovilunite.publications.domain.model.valueobjects;
 
 import jakarta.persistence.Embeddable;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import java.util.Objects;
 
 @Embeddable
-public record VehicleId(
-        @NotBlank @Size(min = 1, max = 36) String vehicleUuid
-) {
+public record VehicleId(Long vehicleId) {
     public VehicleId {
-        if (vehicleUuid == null || vehicleUuid.isBlank()) {
-            throw new IllegalArgumentException("Vehicle UUID cannot be null or blank");
+        Objects.requireNonNull(vehicleId, "Vehicle ID cannot be null");
+        if (vehicleId <= 0) {
+            throw new IllegalArgumentException("Vehicle ID must be positive");
         }
     }
 
     public VehicleId() {
-        this("");
+        this(0L);
     }
 }

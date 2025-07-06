@@ -6,6 +6,7 @@ import pe.edu.upc.opennova.automovilunite.publications.domain.model.valueobjects
 import pe.edu.upc.opennova.automovilunite.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
 import java.util.Date;
+import java.util.Objects;
 
 @Getter
 @Entity
@@ -26,7 +27,7 @@ public class Publication extends AuditableAbstractAggregateRoot<Publication> {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "vehicleUuid", column = @Column(name = "vehicle_id", nullable = false))
+            @AttributeOverride(name = "vehicleId", column = @Column(name = "vehicle_id", nullable = false))
     })
     private VehicleId vehicleId;
 
@@ -59,7 +60,6 @@ public class Publication extends AuditableAbstractAggregateRoot<Publication> {
     @Column(name = "available_until", nullable = false)
     private Date availableUntil;
 
-    // Constructors
     public Publication() {
         this.status = new PublicationStatus();
         this.isFeatured = false;
@@ -70,48 +70,62 @@ public class Publication extends AuditableAbstractAggregateRoot<Publication> {
                        VehicleId vehicleId, ProfileId ownerId, LocationId pickupLocationId,
                        String carRules, boolean isFeatured, Date availableFrom, Date availableUntil) {
         this();
-        this.externalId = externalId;
-        this.title = title;
-        this.description = description;
-        this.rentalRate = rentalRate;
-        this.vehicleId = vehicleId;
-        this.ownerId = ownerId;
-        this.pickupLocationId = pickupLocationId;
-        this.carRules = carRules;
-        this.isFeatured = isFeatured;
-        this.availableFrom = availableFrom;
-        this.availableUntil = availableUntil;
-    }
 
+        this.externalId = Objects.requireNonNull(externalId, "Publication external ID cannot be null");
+        if (externalId.isBlank()) throw new IllegalArgumentException("Publication external ID cannot be blank");
+
+        this.title = Objects.requireNonNull(title, "Publication title cannot be null");
+        if (title.isBlank()) throw new IllegalArgumentException("Publication title cannot be blank");
+
+        this.description = Objects.requireNonNull(description, "Publication description cannot be null");
+        if (description.isBlank()) throw new IllegalArgumentException("Publication description cannot be blank");
+
+        this.rentalRate = Objects.requireNonNull(rentalRate, "Rental rate cannot be null");
+        this.vehicleId = Objects.requireNonNull(vehicleId, "Vehicle ID cannot be null");
+        this.ownerId = Objects.requireNonNull(ownerId, "Owner ID cannot be null");
+        this.pickupLocationId = Objects.requireNonNull(pickupLocationId, "Pickup location ID cannot be null");
+
+        this.carRules = Objects.requireNonNull(carRules, "Car rules cannot be null");
+
+        this.availableFrom = Objects.requireNonNull(availableFrom, "Available from date cannot be null");
+        this.availableUntil = Objects.requireNonNull(availableUntil, "Available until date cannot be null");
+
+        if (this.availableFrom.after(this.availableUntil)) {
+            throw new IllegalArgumentException("Available from date cannot be after available until date.");
+        }
+
+        this.isFeatured = isFeatured;
+    }
 
     public Publication update(String title, String description, RentalRate rentalRate,
                               LocationId pickupLocationId, String carRules, boolean isFeatured,
                               Date availableFrom, Date availableUntil) {
-        this.title = title;
-        this.description = description;
-        this.rentalRate = rentalRate;
-        this.pickupLocationId = pickupLocationId;
-        this.carRules = carRules;
+        this.title = Objects.requireNonNull(title, "Publication title cannot be null");
+        if (title.isBlank()) throw new IllegalArgumentException("Publication title cannot be blank");
+
+        this.description = Objects.requireNonNull(description, "Publication description cannot be null");
+        if (description.isBlank()) throw new IllegalArgumentException("Publication description cannot be blank");
+
+        this.rentalRate = Objects.requireNonNull(rentalRate, "Rental rate cannot be null");
+        this.pickupLocationId = Objects.requireNonNull(pickupLocationId, "Pickup location ID cannot be null");
+
+        this.carRules = Objects.requireNonNull(carRules, "Car rules cannot be null");
+
+        this.availableFrom = Objects.requireNonNull(availableFrom, "Available from date cannot be null");
+        this.availableUntil = Objects.requireNonNull(availableUntil, "Available until date cannot be null");
+
+        if (this.availableFrom.after(this.availableUntil)) {
+            throw new IllegalArgumentException("Available from date cannot be after available until date.");
+        }
+
         this.isFeatured = isFeatured;
-        this.availableFrom = availableFrom;
-        this.availableUntil = availableUntil;
+
         return this;
     }
 
-    public void activate() {
-        this.status = new PublicationStatus(EPublicationStatus.ACTIVE);
-    }
-
-    public void deactivate() {
-        this.status = new PublicationStatus(EPublicationStatus.INACTIVE);
-    }
-
-    public void expire() {
-        this.status = new PublicationStatus(EPublicationStatus.EXPIRED);
-    }
-
-    public void cancel() {
-        this.status = new PublicationStatus(EPublicationStatus.CANCELLED);
+    public void changeStatus(EPublicationStatus newStatus) {
+        Objects.requireNonNull(newStatus, "New status cannot be null");
+        this.status = new PublicationStatus(newStatus);
     }
 
     public boolean isFeatured() {
