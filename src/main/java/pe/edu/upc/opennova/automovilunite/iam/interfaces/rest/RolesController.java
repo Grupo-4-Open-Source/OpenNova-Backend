@@ -11,7 +11,6 @@ import pe.edu.upc.opennova.automovilunite.iam.domain.services.RoleQueryService;
 import pe.edu.upc.opennova.automovilunite.iam.interfaces.rest.resources.RoleResource;
 import pe.edu.upc.opennova.automovilunite.iam.interfaces.rest.transform.RoleResourceFromEntityAssembler;
 
-
 import java.util.List;
 
 /**

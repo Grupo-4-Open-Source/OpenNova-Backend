@@ -5,7 +5,6 @@ import pe.edu.upc.opennova.automovilunite.iam.domain.model.aggregates.User;
 import pe.edu.upc.opennova.automovilunite.iam.domain.model.commands.SignInCommand;
 import pe.edu.upc.opennova.automovilunite.iam.domain.model.commands.SignUpCommand;
 
-
 import java.util.Optional;
 
 public interface UserCommandService {

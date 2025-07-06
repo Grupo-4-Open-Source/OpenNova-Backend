@@ -8,7 +8,6 @@ import lombok.Setter;
 import pe.edu.upc.opennova.automovilunite.iam.domain.model.entities.Role;
 import pe.edu.upc.opennova.automovilunite.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

@@ -56,7 +56,7 @@ public class WebSecurityConfiguration {
    */
   @Bean
   public AuthenticationManager authenticationManager(
-      AuthenticationConfiguration authenticationConfiguration) throws Exception {
+          AuthenticationConfiguration authenticationConfiguration) throws Exception {
     return authenticationConfiguration.getAuthenticationManager();
   }
 
@@ -98,15 +98,15 @@ public class WebSecurityConfiguration {
       return cors;
     } ));
     http.csrf(csrfConfigurer -> csrfConfigurer.disable())
-        .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler))
-        .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(
-            authorizeRequests -> authorizeRequests.requestMatchers(
-                "/api/v1/authentication/**", "/v3/api-docs/**", "/swagger-ui.html",
-                "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated());
+            .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedRequestHandler))
+            .sessionManagement(customizer -> customizer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(
+                    authorizeRequests -> authorizeRequests.requestMatchers(
+                                    "/api/v1/authentication/**", "/v3/api-docs/**", "/swagger-ui.html",
+                                    "/swagger-ui/**", "/swagger-resources/**", "/webjars/**")
+                            .permitAll()
+                            .anyRequest()
+                            .authenticated());
     http.authenticationProvider(authenticationProvider());
     http.addFilterBefore(authorizationRequestFilter(), UsernamePasswordAuthenticationFilter.class);
     return http.build();
@@ -120,9 +120,9 @@ public class WebSecurityConfiguration {
    * @param authenticationEntryPoint The authentication entry point
    */
   public WebSecurityConfiguration(
-      @Qualifier("defaultUserDetailsService") UserDetailsService userDetailsService,
-      BearerTokenService tokenService, BCryptHashingService hashingService,
-      AuthenticationEntryPoint authenticationEntryPoint) {
+          @Qualifier("defaultUserDetailsService") UserDetailsService userDetailsService,
+          BearerTokenService tokenService, BCryptHashingService hashingService,
+          AuthenticationEntryPoint authenticationEntryPoint) {
 
     this.userDetailsService = userDetailsService;
     this.tokenService = tokenService;
