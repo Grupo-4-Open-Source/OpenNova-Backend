@@ -10,7 +10,7 @@ public record UpdatePublicationCommand(
         String description,
         BigDecimal dailyPrice,
         BigDecimal weeklyPrice,
-        String pickupLocationUuid,
+        String pickupLocationId,
         String carRules,
         boolean isFeatured,
         Date availableFrom,

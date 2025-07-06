@@ -10,7 +10,7 @@ public record PublicationResource(
         String description,
         BigDecimal dailyPrice,
         BigDecimal weeklyPrice,
-        String vehicleId,
+        Long vehicleId,
         String ownerId,
         String pickupLocationId,
         String carRules,
@@ -19,6 +19,10 @@ public record PublicationResource(
         Date availableFrom,
         Date availableUntil,
         Date createdAt,
-        Date updatedAt
+        Date updatedAt,
+        String vehicleMake,
+        String vehicleModel,
+        String ownerFullName,
+        String pickupLocationAddressSummary
 ) {
 }
