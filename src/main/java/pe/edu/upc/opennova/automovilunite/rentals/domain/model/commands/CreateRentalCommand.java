@@ -1,11 +1,16 @@
 package pe.edu.upc.opennova.automovilunite.rentals.domain.model.commands;
 
+import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.InsuranceId;
+import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.LocationId;
+import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.PublicationId;
+import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.RenterId;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
 public record CreateRentalCommand(
-        Long publicationId,
-        Long renterId,
+        PublicationId publicationId,
+        RenterId renterId,
         Date bookingDate,
         Date startDate,
         Date endDate,
@@ -14,7 +19,7 @@ public record CreateRentalCommand(
         BigDecimal insuranceCost,
         BigDecimal platformCommission,
         Double pickupMileage,
-        Long insuranceId,
-        Long pickupLocationId
+        InsuranceId insuranceId,
+        LocationId pickupLocationId
 ) {
 }
