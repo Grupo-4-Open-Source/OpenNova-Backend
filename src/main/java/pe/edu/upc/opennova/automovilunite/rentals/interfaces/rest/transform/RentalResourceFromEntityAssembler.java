@@ -7,8 +7,8 @@ public class RentalResourceFromEntityAssembler {
     public static RentalResource toResourceFromEntity(Rental entity) {
         return new RentalResource(
                 entity.getId(),
-                entity.getPublicationId(),
-                entity.getRenterId(),
+                entity.getPublicationId().getPublicationUuid(),
+                entity.getRenterId().getRenterUuid(),
                 entity.getBookingDate(),
                 entity.getStartDate(),
                 entity.getEndDate(),
@@ -19,8 +19,8 @@ public class RentalResourceFromEntityAssembler {
                 entity.getPickupMileage(),
                 entity.getDropoffMileage(),
                 entity.getStatus().getStringName(),
-                entity.getInsuranceId(),
-                entity.getPickupLocationId()
+                entity.getInsuranceId().getInsuranceInternalId(), 
+                entity.getPickupLocationId().getLocationUuid()
         );
     }
 }

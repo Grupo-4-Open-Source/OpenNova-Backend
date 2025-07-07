@@ -1,5 +1,7 @@
 package pe.edu.upc.opennova.automovilunite.rentals.domain.model.commands;
 
+import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.ERentalStatus;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -12,6 +14,6 @@ public record UpdateRentalCommand(
         BigDecimal insuranceCost,
         BigDecimal platformCommission,
         Double dropoffMileage,
-        String status
+        ERentalStatus status
 ) {
 }

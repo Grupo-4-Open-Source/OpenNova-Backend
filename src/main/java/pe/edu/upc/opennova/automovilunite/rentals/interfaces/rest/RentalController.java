@@ -2,6 +2,7 @@ package pe.edu.upc.opennova.automovilunite.rentals.interfaces.rest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,12 +36,12 @@ public class RentalController {
 
     @PostMapping
     @Operation(summary = "Create a new Rental", description = "Creates a new Rental with the provided data")
-    public ResponseEntity<RentalResource> createRental(@RequestBody CreateRentalResource resource) {
+    public ResponseEntity<RentalResource> createRental(@RequestBody @Valid CreateRentalResource resource) {
         var createRentalCommand = CreateRentalCommandFromResourceAssembler.toCommandFromResource(resource);
-        var rentalId = this.rentalCommandService.handle(createRentalCommand);
+        Long rentalId = this.rentalCommandService.handle(createRentalCommand);
 
-        if (rentalId.equals(0L)) {
-            return ResponseEntity.badRequest().build();
+        if (rentalId == null || rentalId.equals(0L)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         var getRentalByIdQuery = new GetRentalByIdQuery(rentalId);
@@ -82,7 +83,7 @@ public class RentalController {
 
     @PutMapping("/{rentalId}")
     @Operation(summary = "Update a Rental", description = "Updates an existing Rental identified by its ID")
-    public ResponseEntity<RentalResource> updateRental(@PathVariable Long rentalId, @RequestBody RentalResource resource) {
+    public ResponseEntity<RentalResource> updateRental(@PathVariable Long rentalId, @RequestBody @Valid RentalResource resource) {
         var updateRentalCommand = UpdateRentalCommandFromResourceAssembler.toCommandFromResource(rentalId, resource);
         var optionalRental = this.rentalCommandService.handle(updateRentalCommand);
 
@@ -97,8 +98,7 @@ public class RentalController {
     @DeleteMapping("/{rentalId}")
     @Operation(summary = "Delete a Rental", description = "Deletes a Rental identified by its ID")
     public ResponseEntity<?> deleteRental(@PathVariable Long rentalId) {
-        var deleteRentalCommand = new DeleteRentalCommand(rentalId);
-        this.rentalCommandService.handle(deleteRentalCommand);
+        this.rentalCommandService.handle(new DeleteRentalCommand(rentalId));
         return ResponseEntity.noContent().build();
     }
 }
