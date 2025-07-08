@@ -1,109 +1,142 @@
 package pe.edu.upc.opennova.automovilunite.rentals.domain.model.aggregates;
 
 import jakarta.persistence.*;
-import pe.edu.upc.opennova.automovilunite.shared.domain.model.aggregates.AuditableAbstractAggregateRoot; // Usamos TU clase base existente
-import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.ERentalStatus;
+import lombok.Getter;
+import pe.edu.upc.opennova.automovilunite.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import pe.edu.upc.opennova.automovilunite.rentals.domain.model.valueobjects.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
 
+@Getter
 @Entity
 @Table(name = "rentals")
 public class Rental extends AuditableAbstractAggregateRoot<Rental> {
 
-    @Column(nullable = false)
-    private Long publicationId;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "publicationUuid", column = @Column(name = "publication_id", nullable = false))
+    })
+    private PublicationId publicationId;
 
-    @Column(nullable = false)
-    private Long renterId;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "renterUuid", column = @Column(name = "renter_id", nullable = false))
+    })
+    private RenterId renterId;
 
     @Temporal(TemporalType.DATE)
-    @Column(nullable = false)
+    @Column(name = "booking_date", nullable = false)
     private Date bookingDate;
 
     @Temporal(TemporalType.DATE)
-    @Column(nullable = false)
+    @Column(name = "start_date", nullable = false)
     private Date startDate;
 
     @Temporal(TemporalType.DATE)
-    @Column(nullable = false)
+    @Column(name = "end_date", nullable = false)
     private Date endDate;
 
-    @Column(nullable = false)
+    @Column(name = "total_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalCost;
 
-    @Column(nullable = false)
+    @Column(name = "base_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal baseCost;
 
-    @Column(nullable = false)
+    @Column(name = "insurance_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal insuranceCost;
 
-    @Column(nullable = false)
+    @Column(name = "platform_commission", nullable = false, precision = 10, scale = 2)
     private BigDecimal platformCommission;
 
-    @Column(nullable = false)
+    @Column(name = "pickup_mileage", nullable = false)
     private Double pickupMileage;
 
-    @Column(nullable = true)
+    @Column(name = "dropoff_mileage", nullable = true)
     private Double dropoffMileage;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ERentalStatus status;
+    @Embedded
+    private RentalStatus status;
 
-    @Column(nullable = false)
-    private Long insuranceId;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "insuranceInternalId", column = @Column(name = "insurance_id", nullable = false))
+    })
+    private InsuranceId insuranceId;
 
-    @Column(nullable = false)
-    private Long pickupLocationId;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "locationUuid", column = @Column(name = "pickup_location_id", nullable = false))
+    })
+    private LocationId pickupLocationId;
 
-    protected Rental() {}
-
-    public Rental(Long publicationId, Long renterId, Date bookingDate, Date startDate, Date endDate,
-                  BigDecimal totalCost, BigDecimal baseCost, BigDecimal insuranceCost, BigDecimal platformCommission,
-                  Double pickupMileage, Long insuranceId, Long pickupLocationId) {
-        this.publicationId = publicationId;
-        this.renterId = renterId;
-        this.bookingDate = bookingDate;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.totalCost = totalCost;
-        this.baseCost = baseCost;
-        this.insuranceCost = insuranceCost;
-        this.platformCommission = platformCommission;
-        this.pickupMileage = pickupMileage;
+    protected Rental() {
+        this.status = new RentalStatus();
         this.dropoffMileage = null;
-        this.status = ERentalStatus.PENDING_OWNER_APPROVAL;
-        this.insuranceId = insuranceId;
-        this.pickupLocationId = pickupLocationId;
+    }
+
+    public Rental(PublicationId publicationId, RenterId renterId, Date bookingDate, Date startDate, Date endDate,
+                  BigDecimal totalCost, BigDecimal baseCost, BigDecimal insuranceCost, BigDecimal platformCommission,
+                  Double pickupMileage, InsuranceId insuranceId, LocationId pickupLocationId) {
+        this();
+
+        this.publicationId = Objects.requireNonNull(publicationId, "Publication ID cannot be null");
+        this.renterId = Objects.requireNonNull(renterId, "Renter ID cannot be null");
+        this.bookingDate = Objects.requireNonNull(bookingDate, "Booking date cannot be null");
+        this.startDate = Objects.requireNonNull(startDate, "Start date cannot be null");
+        this.endDate = Objects.requireNonNull(endDate, "End date cannot be null");
+
+        if (this.startDate.after(this.endDate)) {
+            throw new IllegalArgumentException("Start date cannot be after end date.");
+        }
+        if (this.bookingDate.after(this.startDate)) {
+            throw new IllegalArgumentException("Booking date cannot be after start date.");
+        }
+
+        this.totalCost = Objects.requireNonNull(totalCost, "Total cost cannot be null");
+        if (this.totalCost.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Total cost must be positive.");
+        }
+
+        this.baseCost = Objects.requireNonNull(baseCost, "Base cost cannot be null");
+        this.insuranceCost = Objects.requireNonNull(insuranceCost, "Insurance cost cannot be null");
+        this.platformCommission = Objects.requireNonNull(platformCommission, "Platform commission cannot be null");
+
+        this.pickupMileage = Objects.requireNonNull(pickupMileage, "Pickup mileage cannot be null");
+        if (this.pickupMileage < 0) {
+            throw new IllegalArgumentException("Pickup mileage cannot be negative.");
+        }
+
+        this.insuranceId = Objects.requireNonNull(insuranceId, "Insurance ID cannot be null");
+        this.pickupLocationId = Objects.requireNonNull(pickupLocationId, "Pickup location ID cannot be null");
     }
 
     public void update(Date startDate, Date endDate, BigDecimal totalCost, BigDecimal baseCost,
-                       BigDecimal insuranceCost, BigDecimal platformCommission, Double dropoffMileage, String status) {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.totalCost = totalCost;
-        this.baseCost = baseCost;
-        this.insuranceCost = insuranceCost;
-        this.platformCommission = platformCommission;
+                       BigDecimal insuranceCost, BigDecimal platformCommission, Double dropoffMileage, ERentalStatus newStatusEnum) {
+        this.startDate = Objects.requireNonNull(startDate, "Start date cannot be null");
+        this.endDate = Objects.requireNonNull(endDate, "End date cannot be null");
+
+        if (this.startDate.after(this.endDate)) {
+            throw new IllegalArgumentException("Updated start date cannot be after updated end date.");
+        }
+
+        this.totalCost = Objects.requireNonNull(totalCost, "Total cost cannot be null");
+        if (this.totalCost.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Updated total cost must be positive.");
+        }
+
+        this.baseCost = Objects.requireNonNull(baseCost, "Base cost cannot be null");
+        this.insuranceCost = Objects.requireNonNull(insuranceCost, "Insurance cost cannot be null");
+        this.platformCommission = Objects.requireNonNull(platformCommission, "Platform commission cannot be null");
+
         this.dropoffMileage = dropoffMileage;
-        ERentalStatus newStatus = ERentalStatus.fromString(status)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid status: " + status));
-        this.status = newStatus;
+
+        this.status = new RentalStatus(Objects.requireNonNull(newStatusEnum, "New status cannot be null"));
     }
 
-    public Long getPublicationId() { return publicationId; }
-    public Long getRenterId() { return renterId; }
-    public Date getBookingDate() { return bookingDate; }
-    public Date getStartDate() { return startDate; }
-    public Date getEndDate() { return endDate; }
-    public BigDecimal getTotalCost() { return totalCost; }
-    public BigDecimal getBaseCost() { return baseCost; }
-    public BigDecimal getInsuranceCost() { return insuranceCost; }
-    public BigDecimal getPlatformCommission() { return platformCommission; }
-    public Double getPickupMileage() { return pickupMileage; }
-    public Double getDropoffMileage() { return dropoffMileage; }
-    public ERentalStatus getStatus() { return status; }
-    public Long getInsuranceId() { return insuranceId; }
-    public Long getPickupLocationId() { return pickupLocationId; }
+    public void changeStatus(ERentalStatus newStatus) {
+        Objects.requireNonNull(newStatus, "New status cannot be null");
+        this.status = new RentalStatus(newStatus);
+    }
 }

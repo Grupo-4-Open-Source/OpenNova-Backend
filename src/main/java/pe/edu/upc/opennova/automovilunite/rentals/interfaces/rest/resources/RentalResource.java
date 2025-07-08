@@ -5,8 +5,8 @@ import java.util.Date;
 
 public record RentalResource(
         Long id,
-        Long publicationId,
-        Long renterId,
+        String publicationId,
+        String renterId,
         Date bookingDate,
         Date startDate,
         Date endDate,
@@ -18,6 +18,6 @@ public record RentalResource(
         Double dropoffMileage,
         String status,
         Long insuranceId,
-        Long pickupLocationId
+        String pickupLocationId
 ) {
 }

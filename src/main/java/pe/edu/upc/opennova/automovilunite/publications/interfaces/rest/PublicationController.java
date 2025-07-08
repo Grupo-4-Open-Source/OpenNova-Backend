@@ -6,10 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pe.edu.upc.opennova.automovilunite.publications.domain.model.queries.GetAllPublicationsQuery;
-import pe.edu.upc.opennova.automovilunite.publications.domain.model.queries.GetFeaturedPublicationsQuery;
-import pe.edu.upc.opennova.automovilunite.publications.domain.model.queries.GetPublicationByExternalIdQuery;
-import pe.edu.upc.opennova.automovilunite.publications.domain.model.queries.GetPublicationsByOwnerIdQuery;
+import pe.edu.upc.opennova.automovilunite.publications.application.internal.queryservices.PublicationQueryServiceImpl;
 import pe.edu.upc.opennova.automovilunite.publications.domain.services.PublicationCommandService;
 import pe.edu.upc.opennova.automovilunite.publications.domain.services.PublicationQueryService;
 import pe.edu.upc.opennova.automovilunite.publications.interfaces.rest.resources.CreatePublicationResource;
@@ -21,7 +18,6 @@ import pe.edu.upc.opennova.automovilunite.publications.interfaces.rest.transform
 import pe.edu.upc.opennova.automovilunite.publications.interfaces.rest.transform.UpdatePublicationCommandFromResourceAssembler;
 import pe.edu.upc.opennova.automovilunite.publications.interfaces.rest.transform.UpdatePublicationStatusCommandFromResourceAssembler;
 
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,11 +27,11 @@ import java.util.stream.Collectors;
 public class PublicationController {
 
     private final PublicationCommandService publicationCommandService;
-    private final PublicationQueryService publicationQueryService;
+    private final PublicationQueryServiceImpl publicationQueryService;
 
     public PublicationController(PublicationCommandService publicationCommandService, PublicationQueryService publicationQueryService) {
         this.publicationCommandService = publicationCommandService;
-        this.publicationQueryService = publicationQueryService;
+        this.publicationQueryService = (PublicationQueryServiceImpl) publicationQueryService;
     }
 
     @PostMapping
@@ -43,24 +39,28 @@ public class PublicationController {
     public ResponseEntity<PublicationResource> createPublication(@RequestBody CreatePublicationResource resource) {
         var createPublicationCommand = CreatePublicationCommandFromResourceAssembler.toCommandFromResource(resource);
         return publicationCommandService.handle(createPublicationCommand)
-                .map(publication -> new ResponseEntity<>(PublicationResourceFromEntityAssembler.toResourceFromEntity(publication), HttpStatus.CREATED))
+                .map(publication -> {
+                    return publicationQueryService.getPublicationData(publication.getExternalId())
+                            .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
+                            .map(res -> new ResponseEntity<>(res, HttpStatus.CREATED))
+                            .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                })
                 .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
     @GetMapping("/{publicationId}")
     @Operation(summary = "Get a Publication by its External ID", description = "Retrieves a Publication by its unique external ID")
     public ResponseEntity<PublicationResource> getPublicationByExternalId(@PathVariable String publicationId) {
-        GetPublicationByExternalIdQuery query = new GetPublicationByExternalIdQuery(publicationId);
-        return publicationQueryService.handle(query)
-                .map(publication -> new ResponseEntity<>(PublicationResourceFromEntityAssembler.toResourceFromEntity(publication), HttpStatus.OK))
+        return publicationQueryService.getPublicationData(publicationId)
+                .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
+                .map(publication -> new ResponseEntity<>(publication, HttpStatus.OK))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
     @Operation(summary = "Get all Publications", description = "Retrieves a list of all existing Publications")
     public ResponseEntity<List<PublicationResource>> getAllPublications() {
-        List<pe.edu.upc.opennova.automovilunite.publications.domain.model.aggregates.Publication> publications = publicationQueryService.handle(new GetAllPublicationsQuery());
-        List<PublicationResource> publicationResources = publications.stream()
+        List<PublicationResource> publicationResources = publicationQueryService.getAllPublicationsData().stream()
                 .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(publicationResources);
@@ -69,8 +69,7 @@ public class PublicationController {
     @GetMapping("/owner/{ownerId}")
     @Operation(summary = "Get Publications by Owner ID", description = "Retrieves a list of Publications by a specific Owner ID")
     public ResponseEntity<List<PublicationResource>> getPublicationsByOwnerId(@PathVariable String ownerId) {
-        List<pe.edu.upc.opennova.automovilunite.publications.domain.model.aggregates.Publication> publications = publicationQueryService.handle(new GetPublicationsByOwnerIdQuery(ownerId));
-        List<PublicationResource> publicationResources = publications.stream()
+        List<PublicationResource> publicationResources = publicationQueryService.getPublicationsByOwnerData(ownerId).stream()
                 .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(publicationResources);
@@ -79,8 +78,7 @@ public class PublicationController {
     @GetMapping("/featured")
     @Operation(summary = "Get Featured Publications", description = "Retrieves a list of Publications marked as featured")
     public ResponseEntity<List<PublicationResource>> getFeaturedPublications() {
-        List<pe.edu.upc.opennova.automovilunite.publications.domain.model.aggregates.Publication> publications = publicationQueryService.handle(new GetFeaturedPublicationsQuery());
-        List<PublicationResource> publicationResources = publications.stream()
+        List<PublicationResource> publicationResources = publicationQueryService.getFeaturedPublicationsData().stream()
                 .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(publicationResources);
@@ -91,7 +89,12 @@ public class PublicationController {
     public ResponseEntity<PublicationResource> updatePublication(@PathVariable String publicationId, @RequestBody UpdatePublicationResource resource) {
         var updatePublicationCommand = UpdatePublicationCommandFromResourceAssembler.toCommandFromResource(resource);
         return publicationCommandService.handle(publicationId, updatePublicationCommand)
-                .map(publication -> new ResponseEntity<>(PublicationResourceFromEntityAssembler.toResourceFromEntity(publication), HttpStatus.OK))
+                .map(publication -> {
+                    return publicationQueryService.getPublicationData(publication.getExternalId())
+                            .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
+                            .map(res -> new ResponseEntity<>(res, HttpStatus.OK))
+                            .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -100,7 +103,12 @@ public class PublicationController {
     public ResponseEntity<PublicationResource> updatePublicationStatus(@PathVariable String publicationId, @RequestBody UpdatePublicationStatusResource resource) {
         var updatePublicationStatusCommand = UpdatePublicationStatusCommandFromResourceAssembler.toCommandFromResource(resource);
         return publicationCommandService.handle(publicationId, updatePublicationStatusCommand)
-                .map(publication -> new ResponseEntity<>(PublicationResourceFromEntityAssembler.toResourceFromEntity(publication), HttpStatus.OK))
+                .map(publication -> {
+                    return publicationQueryService.getPublicationData(publication.getExternalId())
+                            .map(PublicationResourceFromEntityAssembler::toResourceFromEntity)
+                            .map(res -> new ResponseEntity<>(res, HttpStatus.OK))
+                            .orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
